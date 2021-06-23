@@ -10,4 +10,4 @@ git add .
 echo -n "input commit reason: "
 read reason
 git commit -m "$reason"
-git push origin temp
+git push origin master
