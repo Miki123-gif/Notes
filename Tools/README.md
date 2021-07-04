@@ -32,6 +32,7 @@
 1. 百度搜索 slower ，网站：https://china.zjnyd.top/
 
 2. 谷歌搜索 exflux , 网站：https://xroute.pro/auth/login
+  - 如果使用了这个，可以在邮箱中查找最新的公告
 
 上网工具：
 

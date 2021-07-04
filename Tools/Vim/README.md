@@ -107,7 +107,7 @@ this is test:hello
 this is test:hello
 this is test:hello
 
-## 学习文档：
+# 学习文档：
 
 - [coc vim：vim的补全，里面也有很多插件](https://github.com/neoclide/coc.nvim/wiki/Using-coc-extensions)
 - [vim 学习文档](https://github.com/wsdjeg/vim-galore-zh_cn)
@@ -146,7 +146,6 @@ nerdtree 中的文件控制：可以直接在nerdtree中新建文件，在目录
 文件。参考：https://blog.csdn.net/qq_38883889/article/details/107014964
 
 
-
 在目录窗口，输入问号，可以打开操作说明
 
 如果想要文件模糊搜索，可以尝试下ctrlp插件
@@ -173,3 +172,53 @@ let g:pymode_options_max_line_length = 120
 
 使用参考：https://sspai.com/post/60305
 插件官网：https://github.com/iamcco/markdown-preview.nvim
+
+# vim标签页
+
+即vim可以同时打开很多个文件， 即 Tab page
+
+如果是直接使用vi file1 file2 这样打开多个文件，那么只能使用下面方式切换
+
+```
+:bn
+:bp
+:b2
+```
+
+1. 建立新的标签页或者打开新的文件
+
+```
+:tabnew filename
+:tabe filename
+:tabedit filename
+```
+
+2. 切换标签页
+
+参考：https://vimjc.com/vim-tabpage.html
+
+在普通模式下：
+
+```
+gt
+gT
+```
+
+在命令模式下：
+
+```
+:tabnext
+:tabn
+:tabprevious
+:tabp
+```
+
+3. 关闭标签页
+
+```
+:tabclose
+# 下面命令只保留当前的标签页，关闭其他标签页
+:tabo
+:tabonly
+```
+

@@ -10,8 +10,6 @@
 :16 d
 ```
 
-
-
 # 复制命令
 
 参考：https://www.jianshu.com/p/87ccdb08bced

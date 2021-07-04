@@ -8,7 +8,11 @@ jupyter nbextension enable vim_binding/vim_binding
 cur_path=$(pwd)
 if test -d ~/.jupyter;then
   # 可以使用cat > filename << End这种格式来输出多行字符串
-  cd ~/.jupyter;mkdir custom && cd custom;touch custom.js;cat > custom.js << END
+  cd ~/.jupyter
+  if test ! -d custom;then
+    mkdir custom
+  fi
+  cd custom;touch custom.js;cat > custom.js << END
 // Configure CodeMirror Keymap
 require([
   'nbextensions/vim_binding/vim_binding',   // depends your installation
