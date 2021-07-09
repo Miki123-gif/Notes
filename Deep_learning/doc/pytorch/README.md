@@ -98,6 +98,16 @@ https://towardsdatascience.com/a-guide-to-an-efficient-way-to-build-neural-netwo
 
 # 自然语言处理
 
+## 神经网络正则化
+
+参考：https://github.com/GokuMohandas/MadeWithML/blob/main/notebooks/06_Linear_Regression.ipynb
+
+```
+# 神经网络的正则化，其实是优化器的一个参数, 默认是0，就不带惩罚
+optimizer = Adam(model.parameters(), lr=0.01, weight_decay=1e-2)
+```
+
+在数据量比较大的时候，使用惩罚可以防止过拟合，同时提高准确率
 
 # 教程推荐
 

@@ -1,10 +1,4 @@
-#/bin/bash 
-mkdir -p $(jupyter --data-dir)/nbextensions
-# Clone the repository
-cd $(jupyter --data-dir)/nbextensions
-git clone https://github.com/lambdalisue/jupyter-vim-binding vim_binding
-# Activate the extension
-jupyter nbextension enable vim_binding/vim_binding
+#!/bin/bash 
 cur_path=$(pwd)
 if test -d ~/.jupyter;then
   # 可以使用cat > filename << End这种格式来输出多行字符串
@@ -20,6 +14,10 @@ require([
   // Map jj to <Esc>
   CodeMirror.Vim.map("jj", "<Esc>", "insert");
   CodeMirror.Vim.map("q", ":q", "normal");
+  CodeMirror.Vim.map("J", "5j", "normal");
+  CodeMirror.Vim.map("H", "5h", "normal");
+  CodeMirror.Vim.map("L", "5l", "normal");
+  CodeMirror.Vim.map("K", "5k", "normal");
   // Swap j/k and gj/gk (Note that <Plug> mappings)
   CodeMirror.Vim.map("j", "<Plug>(vim-binding-gj)", "normal");
   CodeMirror.Vim.map("k", "<Plug>(vim-binding-gk)", "normal");

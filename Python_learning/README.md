@@ -86,3 +86,29 @@ if __name__ = "_main_":
     print(result_sum)
 ```
 
+# call方法
+
+- 参考：https://blog.csdn.net/Yaokai_AssultMaster/article/details/70256621
+
+init就是初始化一个实例对象，call方法就是可以直接调用这个实例对象
+
+```
+class X(object):
+	def __init__(self, a, b, range):
+		self.a = a
+		self.b = b
+		self.range = range
+	def __call__(self, a, b):
+		self.a = a
+		self.b = b
+		print('__call__ with （{}, {}）'.format(self.a, self.b))
+	def __del__(self, a, b, range):
+		del self.a
+		del self.b
+		del self.range
+
+>>> xInstance = X(1, 2, 3)
+>>> xInstance(1,2)
+__call__ with (1, 2)
+```
+
