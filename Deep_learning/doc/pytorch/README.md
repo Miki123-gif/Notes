@@ -98,7 +98,7 @@ https://towardsdatascience.com/a-guide-to-an-efficient-way-to-build-neural-netwo
 
 # 自然语言处理
 
-## 神经网络正则化
+# 神经网络正则化
 
 参考：https://github.com/GokuMohandas/MadeWithML/blob/main/notebooks/06_Linear_Regression.ipynb
 
@@ -108,6 +108,21 @@ optimizer = Adam(model.parameters(), lr=0.01, weight_decay=1e-2)
 ```
 
 在数据量比较大的时候，使用惩罚可以防止过拟合，同时提高准确率
+
+# 设置样本权重
+
+参考：https://github.com/GokuMohandas/MadeWithML/blob/main/notebooks/07_Logistic_Regression.ipynb
+
+```
+
+# Class weights
+counts = np.bincount(y_train)
+class_weights = {i: 1.0/count for i, count in enumerate(counts)}
+print (f"counts: {counts}\nweights: {class_weights}")
+
+class_weights_tensor = torch.Tensor(list(class_weights.values()))
+loss_fn = nn.CrossEntropyLoss(weight=class_weights_tensor)
+```
 
 # 教程推荐
 
