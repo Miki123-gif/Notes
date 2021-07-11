@@ -1,6 +1,8 @@
 # 说明：
 
-推荐教程：笨方法学vimrc脚本。
+推荐教程：
+- 笨方法学vimrc脚本。
+- vim教程整理: https://github.com/vim-china/hello-vim
 
 现在使用neovim的比较多，而且里面的调用方式和vim差不多，只是函数的接口有变化，所以还是建议学习nvim
 
