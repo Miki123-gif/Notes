@@ -86,3 +86,108 @@ TODO:
 
 - [ ] 因为只使用了片段6892-7192其他片段并没有利用，查看其他片段的区分度
 - [ ] 如果使用标准化，不用最大最小值归一化效果会怎么样？
+
+# 对抗验证
+
+相比于交叉验证，当训练集和测试集的分布差别非常大时，我们使用对抗验证来划分训练
+集和验证集。
+
+测试代码如下：
+
+```
+import pandas as pd
+import numpy as np
+import sklearn
+import lightgbm as lgb
+from sklearn.model_selection import train_test_split
+from catboost import CatBoostClassifier
+import xgboost as xgb
+from sklearn.metrics import roc_auc_score
+
+train = np.load('../train/10type_sort_train_data_8192.npy')
+y_train = np.load('../train/10type_sort_train_label_8192.npy')
+val = np.load('../val/10type_sort_eval_data_8192.npy')
+y_val = np.load('../val/10type_sort_eval_label_8192.npy')
+
+new_y_train = np.ones(train.shape[0])
+new_y_val = np.zeros(val.shape[0])
+all_y_train = np.concatenate([new_y_train, new_y_val])
+all_train = np.concatenate([train, val])
+
+x_train, x_test, y_train, y_test = train_test_split(all_train, all_y_train, test_size=0.3, shuffle=True)
+model = CatBoostClassifier(
+                           eval_metric="AUC",
+                           task_type="GPU",
+                           learning_rate=0.1,
+                           iterations=10,
+                           l2_leaf_reg=50,
+                           random_seed=42,
+                           od_type="Iter",
+                           depth=5,
+                           early_stopping_rounds=10,
+                           border_count=64,
+                          )
+params = {
+    'iterations': 100,
+    'eval_metric': 'AUC',
+    'od_type': 'Iter',
+    'od_wait': 50,
+}
+
+model = CatBoostClassifier(**params)
+_ = model.fit(x_train, y_train, eval_set=(x_test, y_test))
+predict = model.predict(x_test)
+roc_auc_score(predict, y_test) # 0.619
+(predict == y_test).sum()/len(predict)
+model.feature_importances_.argsort()[::-1][:500]
+
+# fft test
+train_fft = np.fft.fft(train)
+val_fft = np.fft.fft(val)
+train_sp = train_fft[:, 6892:7192]
+val_sp = val_fft[:, 6892:7192]
+all_train = np.concatenate([train_sp, val_sp])
+new_y_train = np.zeros(train_sp.shape[0])
+new_y_val = np.ones(val_sp.shape[0])
+all_y_train = np.concatenate([new_y_train, new_y_val])
+x_train, x_test, y_train, y_test = train_test_split(all_train, all_y_train, test_size=0.3, shuffle=True)
+params = {
+    'iterations': 100,
+    'eval_metric': 'AUC',
+    'od_type': 'Iter',
+    'od_wait': 50,
+}
+
+model = CatBoostClassifier(**params)
+_ = model.fit(x_train, y_train, eval_set=(x_test, y_test))
+predict = model.predict(x_test)
+roc_auc_score(predict, y_test) # 0.71
+model.feature_importances_.argsort()[::-1][:200]
+
+# abs test
+train_abs = np.abs(train)
+val_abs = np.abs(val)
+all_train = np.concatenate([train_abs, val_abs])
+new_y_train = np.zeros(train_abs.shape[0])
+new_y_val = np.ones(val_abs.shape[0])
+all_y_train = np.concatenate([new_y_train, new_y_val])
+x_train, x_test, y_train, y_test = train_test_split(all_train, all_y_train, test_size=0.3, shuffle=True)
+params = {
+    'iterations': 100,
+    'eval_metric': 'AUC',
+    'od_type': 'Iter',
+    'od_wait': 50,
+}
+
+model = CatBoostClassifier(**params)
+_ = model.fit(x_train, y_train, eval_set=(x_test, y_test))
+predict = model.predict(x_test)
+roc_auc_score(predict, y_test) # 0.628
+(predict == y_test).sum()/len(predict)
+```
+
+综上所述，还是原始信号的数据分布差异比较小
+
+参考：
+- https://wmathor.com/index.php/archives/1571
+- 代码查看：https://towardsdatascience.com/adversarial-validation-ca69303543cd
