@@ -1,4 +1,15 @@
 #!/bin/bash 
+
+# config jupyter vim
+# reference:https://github.com/lambdalisue/jupyter-vim-binding
+# Create required directory in case (optional)
+mkdir -p $(jupyter --data-dir)/nbextensions
+# Clone the repository
+cd $(jupyter --data-dir)/nbextensions
+git clone https://github.com/lambdalisue/jupyter-vim-binding vim_binding
+# Activate the extension
+jupyter nbextension enable vim_binding/vim_binding
+
 cur_path=$(pwd)
 if test -d ~/.jupyter;then
   # 可以使用cat > filename << End这种格式来输出多行字符串

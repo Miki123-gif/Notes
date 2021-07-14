@@ -31,3 +31,11 @@ y = df.iloc[:, 2].value_counts().values
 
 总结：%matplotlib inline 可以在Ipython编译器里直接使用，功能是可以内嵌绘图，并且可以省略掉plt.show()这一步。
 
+# 在折线中标记某些点
+
+
+```
+plt.plot(df)
+plt.plot(df, markevery=mark, marker='o')
+```
+
