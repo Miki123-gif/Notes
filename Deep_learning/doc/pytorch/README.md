@@ -276,7 +276,75 @@ best_val_loss = np.inf
                 break
 ```
 
+# RNN
 
+rnn公式和pytorch官网：https://pytorch.org/docs/stable/generated/torch.nn.RNN.html
+
+rnn相比于DNN就是多了个隐藏层。假如现在有个100天的时间序列，那么输入就是[100, 1], 第一个维度是100，表示句子长度是100， 维度为1表示，每个句子用1个特征表示。
+如果是一句话，那么[10, 128],10表示句子长度， 128表示每个单词可以用128维度的向
+量表示。
+
+rnn的训练：
+
+```
+# 1 RNN()
+# 因为RNN是有时间步长的，如果通过RNN这个类，那么我们不用for循环.
+
+# 2 RNNcell()
+# cell就是一个很小的单元, 因此我们需要手动设置时间步长，采用for循环.
+```
+
+定义rnn:
+
+```
+x = torch.randn(100, 3, 128) # word_len, batch_size, imbedding_dim
+
+# 这里input size应该等于word len， hidden size应该等于
+rnn = RNN(input_size=100, hidden_size=10)
+
+# 那么查看RNN的内部参数
+rnn._parameters.keys()
+rnn.weight_ih_l0.shape, rnn.weight_hh_l0.shape, rnn.bias_ih_l0.shape, rnn.bias_hh_l0.shape
+(torch.Size([10, 100]),
+ torch.Size([10, 10]),
+ torch.Size([10]),
+ torch.Size([10]))
+```
+
+再根据公式可以发现，rnn原理其实就是有很多个时间步长，每个步长只取一个单词的向
+量，比如每个单词是128维度，那么每个步长的输入是[1, 128], 而hidden size没有限制
+
+- input_size = embedding dim
+- hidden size是你自己设置的超参数
+
+```
+out, h0 = rnn(x)
+out.shape, h0.shape
+(torch.Size([10, 3, 10]), torch.Size([1, 3, 10]))
+```
+
+- h0是最后一个时间步长的输出，也就是3个batch，每个输出是[1, 10]
+- out是3个batch的输出集合起来, 果然`out[-1, :, :] == h0`
+- 我们通常是取out后的最后几层，用来训练神经网络
+
+# LSTM
+
+lstm和rnn都是一样的，只不过内部的架构变了很多，rnn只有一个隐藏层状态h0， 而
+lstm有两个隐藏层，h0和c0，因此lstm的输入有h0，c0，xt，输出有yt，ht，ct.
+
+参考：https://pytorch.org/docs/stable/generated/torch.nn.LSTM.html
+
+```
+# 每个单词用128维度的向量表示
+embedding_dim = 128
+
+lstm = nn.LSTM(input_size=embedding_dim, hidden_size=10)
+lstm._parameters.keys()
+x = torch.randn(10, 3, 128) # word_len, batch_size, embedding_dim
+out, (hn, cn) = lstm(x)
+print(out.shape)
+# torch.Size([10, 3, 10])
+```
 
 # 教程推荐
 
