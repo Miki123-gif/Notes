@@ -131,19 +131,26 @@ class Trainer:
             self.optimizer.step()
             total_loss += loss
             acc_num += self.cal_acc(predict, label)
+
+            feature.cpu()
+            label.cpu()
         return total_loss, acc_num
 
     def eval_step(self, dataloader):
         self.model.eval()
         acc_num = 0
         total_loss = 0
-        for feature, label in dataloader:
-            feature = feature.to(self.device)
-            label = label.to(self.device)
-            predict = self.model(feature)
-            loss = self.criterion(predict, label)
-            acc_num += self.cal_acc(predict, label)
-            total_loss += loss
+        with torch.no_grad():
+            for feature, label in dataloader:
+                feature = feature.to(self.device)
+                label = label.to(self.device)
+                predict = self.model(feature)
+                loss = self.criterion(predict, label)
+                acc_num += self.cal_acc(predict, label)
+                total_loss += loss
+
+                feature.cpu()
+                label.cpu()
         return total_loss, acc_num
 
     def start_train(self, epochs, train_loader, val_loader, patience=10,):

@@ -16,3 +16,15 @@ wget -c url
 wget -b url
 ```
 
+# 统计当前目录下文件数量
+
+主要使用了三个命令结合：
+
+- ls -l 显示当前目录的文件内容
+- grep '^d' 过滤以d开头的，表示directory
+- wc -l 统计行数
+
+因此统计的命令如下：
+
+`ls -l | grep '^d' | wc -l` 
+
