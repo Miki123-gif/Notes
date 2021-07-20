@@ -1,4 +1,5 @@
 <!--ts-->
+* [pytorch autograd](#pytorch-autograd)
 * [关于nn.Linear()的一点理解：](#关于nnlinear的一点理解)
 * [计算机视觉](#计算机视觉)
    * [知识点记录](#知识点记录)
@@ -15,9 +16,17 @@
 * [初始化权重](#初始化权重)
 * [自定义Dataset](#自定义dataset)
 * [early stop](#early-stop)
+* [RNN](#rnn)
+* [LSTM](#lstm)
+* [pytorch参数注册](#pytorch参数注册)
+* [pytorch 中的序列化checkpoint, 断点恢复](#pytorch-中的序列化checkpoint-断点恢复)
+* [为什么要继承nn.Module](#为什么要继承nnmodule)
+* [pytorch 自己定义网络层](#pytorch-自己定义网络层)
+   * [nn.Parameter()](#nnparameter)
+   * [self.register_parameter()](#selfregister_parameter)
 * [教程推荐](#教程推荐)
 
-<!-- Added by: zwl, at: 2021年 7月11日 星期日 20时33分17秒 CST -->
+<!-- Added by: zwl, at: 2021年 7月20日 星期二 21时10分06秒 CST -->
 
 <!--te-->
 
@@ -344,6 +353,275 @@ x = torch.randn(10, 3, 128) # word_len, batch_size, embedding_dim
 out, (hn, cn) = lstm(x)
 print(out.shape)
 # torch.Size([10, 3, 10])
+```
+
+# pytorch参数注册
+
+当我们想自己diy一个神经网络结构的时候，就需要将网络层参数注册到网络中。
+
+查看哪些参数是注册的，可以print(model)
+
+```
+class Net(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.encoder = [nn.Linear(10, 256)]
+    def forward(self, x):
+        out = self.encoder[0](x)
+
+print(Net())
+# Net()
+```
+
+按上面形式定义网络，我们会发现网络结构是空的，并没有被注册。
+
+解决办法：
+
+```
+class Net(nn.Module):
+  def __init__(self):
+    super().__init__()
+    self.encoder = nn.ModuleList([nn.Linear(10, 256) for _ in range(10)])
+  def forward(self, x):
+    for layer in self.encoder:
+      out = layer(x)
+```
+
+# pytorch 中的序列化checkpoint, 断点恢复
+
+现在有个场景，当做试验的时候，因为实验时间需要很长，或者实验突然中断，导致我们需要从某个epoch开始训练，，这时候我们就需要保存checkpoint.
+
+参考：
+- https://zhuanlan.zhihu.com/p/53927068
+- https://zhuanlan.zhihu.com/p/133250753
+
+
+我们除了要保存模型此时的epoch参数，还要保存此时的optimizer的参数, 保存和加载的
+方式如下：
+
+```
+#save
+torch.save({
+            'epoch': epoch,
+            'net': model.state_dict(),
+            'optimizer': optimizer.state_dict(),
+            'loss': loss,
+            'scheduler': scheduler.state_dict(),
+            }, PATH)
+
+#load
+model = CivilNet()
+optimizer = TheOptimizerClass(model.parameters())
+
+checkpoint = torch.load(PATH)
+model.load_state_dict(checkpoint['net'])
+optimizer.load_state_dict(checkpoint['optimizer'])
+start = checkpoint['epoch']
+loss = checkpoint['loss']
+scheduler.load_state_dict(checkpoint['scheduler'])
+```
+
+动手尝试实现：
+
+```
+# 自己定义线性层
+class Mylayer(nn.Module):
+    # 定义z=ax+by
+    def __init__(self):
+        super().__init__()
+        # 定义权重a和b
+        #self.weights = nn.Parameter(torch.randn(1, 2))
+        self.register_parameter('weights', nn.Parameter(torch.randn(1, 2)))
+        # 查看网络的参数
+        # print(self._parameters)
+    def forward(self, x):
+        out = x @ self.weights.T
+        return out
+
+# 网络定义
+class Net(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.layer = Mylayer()
+    def forward(self, x):
+        x = self.layer(x)
+        return x
+
+
+# 创建数据
+data = [[1, 2], [2, 2], [2, 3], [3, 4], [3, 2]]
+data = torch.tensor(data)
+
+weights = torch.tensor([2, 3])
+model = Net()
+
+# 网络训练
+criterion = nn.MSELoss()
+optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
+for epoch in range(1000):
+    for idx in range(len(label)):
+        feature = data[idx].float()
+        target = label[idx].float().unsqueeze(0)
+        optimizer.zero_grad()
+        preds = model(feature)
+        loss = criterion(preds, target)
+        loss.backward()
+        optimizer.step()
+
+checkpoint = torch.load('mymodel200.pt')
+model = Net()
+optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
+model.load_state_dict(checkpoint['model_state_dict'])
+start = checkpoint['epoch']
+loss = checkpoint['loss']
+optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+
+model.train()
+for epoch in range(start+1, 1000):
+    for idx in range(len(label)):
+        feature = data[idx].float()
+        target = label[idx].float().unsqueeze(0)
+        optimizer.zero_grad()
+        preds = model(feature)
+        loss = criterion(preds, target)
+        loss.backward()
+        optimizer.step()
+    if epoch % 200 == 0:
+        print(model.layer.weights)
+        print(f'loss: {loss:.4f}')
+
+```
+
+# 为什么要继承nn.Module
+
+- [参考教程](https://zhuanlan.zhihu.com/p/34616199) 
+
+![](https://pic2.zhimg.com/80/v2-ad82550f31457c187b59cf56cdcb3fe5_720w.jpg) 
+
+从上图中可以看出，nn.Module 中含有很多基础和必要的内容
+
+# pytorch 自己定义网络层
+
+比如说我想自己定义一个公式，`z=ax+by` 其中只有两个参数是可以学习的`a` 和 `b`
+
+## nn.Parameter()
+
+先把基础框架搭好
+
+```
+class Mylayer(nn.Module):
+    def __init__(self):
+        super().__init__()
+        pass
+    def forward(self, x):
+        pass
+```
+
+```
+# 定义方式1
+class Mylayer(nn.Module):
+    # 定义z=ax+by
+    def __init__(self):
+        super().__init__()
+        # 定义权重a和b
+        self.weights = nn.Parameter(torch.randn(1, 2))
+        # 查看网络的参数
+        # print(self._parameters)
+    def forward(self, x):
+        # or use , * is element wise
+        # out = (x * self.weights).sum(dim=1, keepdim=True)
+        out = x @ self.weights.T
+        return out
+
+
+class Net(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.layer = Mylayer()
+    def forward(self, x):
+        x = self.layer(x)
+
+# 我们可以发现Mylayer已经被注册进Net网络中了
+print(Net())
+# Net(
+  (layer): Mylayer()
+)
+```
+
+开始训练：
+
+```
+# 创建数据
+
+- [参考](https://blog.csdn.net/goodxin_ie/article/details/84680433) 
+
+data = [[1, 2], [2, 2], [2, 3], [3, 4], [3, 2]]
+data = torch.tensor(data)
+
+weights = torch.tensor([2, 3])
+model = Net()
+
+# 训练网络参数
+criterion = nn.MSELoss()
+optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
+for epoch in range(10):
+    for idx in range(len(label)):
+        feature = data[idx]
+        target = label[idx]
+        optimizer.zero_grad()
+        preds = model(feature.long())
+        loss = criterion(preds, label)
+        loss.backward()
+        optimizer.step()
+```
+
+但提示出现下面错误：
+
+```
+---> 10         out = x @ self.weights.T
+     11         return out
+
+RuntimeError: expected scalar type Long but found Float
+```
+
+进行修改后，
+
+```
+criterion = nn.MSELoss()
+optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
+for epoch in range(1000):
+    for idx in range(len(label)):
+        feature = data[idx].float()
+        target = label[idx].float().unsqueeze(0) # 这里feature 和label的维度必
+        须一样
+        optimizer.zero_grad()
+        preds = model(feature)
+        loss = criterion(preds, target)
+        loss.backward()
+        optimizer.step()
+
+print(model.layer.weights)
+#Parameter containing:
+#tensor([[2.0002, 2.9998]], requires_grad=True)
+```
+
+## self.register_parameter()
+
+- [参考](https://blog.csdn.net/xinjieyuan/article/details/106951116) 
+
+```
+class Mylayer(nn.Module):
+    # 定义z=ax+by
+    def __init__(self):
+        super().__init__()
+        # 定义权重a和b
+        #self.weights = nn.Parameter(torch.randn(1, 2))
+        self.register_parameter('weights', nn.Parameter(torch.randn(1, 2)))
+        # 查看网络的参数
+        # print(self._parameters)
+    def forward(self, x):
+        out = x @ self.weights.T
+        return out
 ```
 
 # 教程推荐

@@ -1019,8 +1019,8 @@ let g:vimspector_enable_mappings = 'HUMAN'
 " remove mapping set by vim-signature
 call timer_start(100, {->execute("nunmap ']")})
 call timer_start(100, {->execute("nunmap '[")})
-nnoremap <silent><nowait> ' <Cmd>HopWord<CR>
-vnoremap <silent><nowait> ' <Cmd>HopWord<CR>
+"nnoremap <silent><nowait> ' <Cmd>HopWord<CR>
+"vnoremap <silent><nowait> ' <Cmd>HopWord<CR>
 vmap <silent> <Leader>k <Plug>MarkSet
 " vim-snipe
 map <silent> f <Plug>(snipe-f)
@@ -1082,6 +1082,12 @@ nnoremap J 5j
 nnoremap H 5h
 nnoremap K 5k
 nnoremap L 5l
+
+vnoremap J 5j
+vnoremap H 5h
+vnoremap K 5k
+vnoremap L 5l
+
 " python mode
 let g:pymode_python = 'python3'
 let g:pymode_trim_whitespaces = 1
