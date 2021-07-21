@@ -1,5 +1,6 @@
 <!--ts-->
 * [pathlib 介绍](#pathlib-介绍)
+* [官方教程](#官方教程)
 * [路径管理](#路径管理)
    * [导入模块](#导入模块)
    * [获取当前路径](#获取当前路径)
@@ -8,9 +9,10 @@
 * [文件管理](#文件管理)
    * [查看当前路径文件](#查看当前路径文件)
    * [删除文件](#删除文件)
+* [pathlib 与其他模块配合使用情况](#pathlib-与其他模块配合使用情况)
 * [参考资料](#参考资料)
 
-<!-- Added by: zwl, at: 2021年 7月20日 星期二 22时24分31秒 CST -->
+<!-- Added by: zwl, at: 2021年 7月21日 星期三 09时38分37秒 CST -->
 
 <!--te-->
 # pathlib 介绍
@@ -24,6 +26,12 @@ Pathlib框架：
 
 - 路径管理
 - 文件管理
+
+# 官方教程
+
+https://docs.python.org/3/library/pathlib.html
+
+并且网页最下方有os函数与pathlib函数对比表
 
 # 路径管理
 
@@ -68,6 +76,8 @@ path.resolve()
 
 ## 查看当前路径文件
 
+第一种写法：
+
 ```
 path = p('.')
 list(path.glob('*')) # glob里面可以使用python的正则表达
@@ -75,12 +85,34 @@ list(path.glob('*')) # glob里面可以使用python的正则表达
 list(path.glob('*.txt'))
 ```
 
+第二种写法：
+
+
+```
+path = p('.')
+list(path.iterdir())
+```
+
+
 ## 删除文件
 
 ```
 path = p('.')
 for file in list(path.glob('*.pt')):
     file.unlink()
+```
+
+# pathlib 与其他模块配合使用情况
+
+通常我们比如创建文件或者通过日志logging，都会通过其他模块的函数来生成创建文件
+，现在检查这些接口的适配情况.
+
+发现logging模块并不能很好适配pathlib，必须将路径转换成字符串
+
+```
+path = '.'
+path = p(path)
+logger = set_logger(str(p))
 ```
 
 # 参考资料
