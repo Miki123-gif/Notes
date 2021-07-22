@@ -260,6 +260,38 @@ for (idx, batch) in enumerate(DL_DS):
 DataLoader 中还一个参数 collate_fn，会对所有迭代的数据先进行处理，然后再输出,
 也可以看上面教程
 
+# 自定义DataLoader
+
+如果只是想单纯继承dataloader，可以按下面方式：
+
+```
+class MyDataloader(DataLoader):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        pass
+        
+next(iter(train_loader))        
+```
+
+这里尝试理解下, `*args, **kwargs` 
+
+```
+class A:
+    def __init__(self, a=1):
+        self.a = a
+class B(A):
+    # 可以发现，使用下面写法，会继承父类中的所有参数
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+a = A()
+b = B()
+
+a.a # 1
+b.a # 1
+```
+
+
+
 # early stop 
 
 神经网络的训练，并不需要固定的epoch次数，通常我们会使用early stop，即不完全训
